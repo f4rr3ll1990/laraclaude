@@ -1,0 +1,573 @@
+{
+  "name": "ItProger",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b1bde570-879e-4189-a5a1-281d339c0dfe",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://itproger.com/ua/news",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        144,
+        0
+      ],
+      "id": "9fb1ab27-1123-4dd4-ab86-a1d085807811",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "links",
+              "cssSelector": ".allArticles .article a",
+              "returnValue": "attribute",
+              "attribute": "href",
+              "returnArray": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        0
+      ],
+      "id": "6ec957de-0790-4b23-a532-b69bb858056c",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "links",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "d71a41cb-5db0-4a95-8064-98c4732f860c",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "url": "=https://itproger.com/ua/{{ $json.links }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "8104b2b6-099d-4e0e-a454-690097620930",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "title",
+              "cssSelector": "h1.title"
+            },
+            {
+              "key": "bigtext",
+              "cssSelector": ".text-in-block",
+              "skipSelectors": "a, img"
+            },
+            {
+              "key": "text",
+              "cssSelector": ".txt>p"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "b84e7431-ab67-4808-8fc6-a9d605792117",
+      "name": "HTML1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.fulltext }}",
+        "options": {
+          "systemMessage": "Rewrite the text you received",
+          "batching": {
+            "delayBetweenBatches": 60000
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1504,
+        16
+      ],
+      "id": "54d6363d-2e39-4ae4-849b-6f08fed3c192",
+      "name": "AI Agent",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        256
+      ],
+      "id": "1b8f465b-f8ad-4206-92e6-51c968cba921",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "tLw5XdYYepCvmzYe",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "69d8d44e-3269-4b55-bbc6-52fbb35577ac",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9a7d0c6c-e841-44c1-b176-5f96a2a677a9",
+              "name": "fulltext",
+              "value": "={{ $json.text }}\n{{ $json.bigtext }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1296,
+        16
+      ],
+      "id": "47a9161e-d1e9-4f6a-aa0a-7af8098a16e9",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "28e5e079-67e6-48be-9ac8-4d27c9a944f8",
+              "name": "category",
+              "value": "Технологии",
+              "type": "string"
+            },
+            {
+              "id": "44f8416a-10ce-42ed-aa12-2977841d4c28",
+              "name": "title",
+              "value": "={{ $('HTML1').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "ffc940ef-899d-4277-b1aa-7cf17cc3f73a",
+              "name": "excerpt",
+              "value": "={{ $('HTML1').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "29aa0b50-0fd8-447b-9404-c335e08cdea0",
+              "name": "lead",
+              "value": "={{ $('HTML1').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "f7b50535-71c7-4f7d-8925-fb2ca6d0fd0b",
+              "name": "image",
+              "value": "hero-keyboard",
+              "type": "string"
+            },
+            {
+              "id": "7e6520a7-acaa-4f01-88d8-938c7d2c1a00",
+              "name": "date",
+              "value": "2026-06-18",
+              "type": "string"
+            },
+            {
+              "id": "d4765d58-2806-4ea6-99aa-3c74704b05f6",
+              "name": "author",
+              "value": "F4rr3LL",
+              "type": "string"
+            },
+            {
+              "id": "e1d1238d-8e39-4531-8d3a-0dd7565a6ed2",
+              "name": "authorAvatar",
+              "value": "vestnik-author-petrov",
+              "type": "string"
+            },
+            {
+              "id": "b5d0b37f-d922-4205-8b73-b9850fc8b353",
+              "name": "readingTime",
+              "value": "5",
+              "type": "string"
+            },
+            {
+              "id": "48a90dd4-752b-4c53-860d-a97731537380",
+              "name": "figcaption",
+              "value": "={{ $('HTML1').item.json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "d7c9339f-06de-4666-83b3-1b12cbedf6e7",
+              "name": "featured",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "e0166cda-ee21-4bdb-9eef-e3ba650dde68",
+              "name": "views",
+              "value": "8452",
+              "type": "string"
+            },
+            {
+              "id": "e2b91558-dcfe-4b45-80cc-55dd3ef44840",
+              "name": "body",
+              "value": "=[{ \"type\": \"p\", \"text\": \"{{ $json.output }}\" }]",
+              "type": "string"
+            },
+            {
+              "id": "f8851168-2ed4-43f0-9e7d-a92e97e6e080",
+              "name": "tags",
+              "value": "[\"квантовые технологии\", \"наука\", \"процессоры\"]",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        -192
+      ],
+      "id": "13501a07-b678-42b5-a3d6-226f6313f7d0",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.2.2:3000/api/articles",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=category",
+              "value": "={{ $json.category }}"
+            },
+            {
+              "name": "title",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "name": "excerpt",
+              "value": "={{ $json.excerpt }}"
+            },
+            {
+              "name": "lead",
+              "value": "={{ $json.lead }}"
+            },
+            {
+              "name": "image",
+              "value": "={{ $json.image }}"
+            },
+            {
+              "name": "date",
+              "value": "={{ $json.date }}"
+            },
+            {
+              "name": "author",
+              "value": "={{ $json.author }}"
+            },
+            {
+              "name": "authorAvatar",
+              "value": "={{ $json.authorAvatar }}"
+            },
+            {
+              "name": "readingTime",
+              "value": "={{ $json.readingTime }}"
+            },
+            {
+              "name": "figcaption",
+              "value": "={{ $json.figcaption }}"
+            },
+            {
+              "name": "featured",
+              "value": "={{ $json.featured }}"
+            },
+            {
+              "name": "views",
+              "value": "={{ $json.views }}"
+            },
+            {
+              "name": "body",
+              "value": "={{ $json.body }}"
+            },
+            {
+              "name": "tags",
+              "value": "={{ $json.tags }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1904,
+        -224
+      ],
+      "id": "d048ab4d-c91f-4470-be79-d496cfcd232b",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1584,
+        -368
+      ],
+      "id": "b9af1296-2440-40e9-830d-e1074b0cf7d4",
+      "name": "Loop Over Items1"
+    }
+  ],
+  "pinData": {
+    "HTML": [
+      {
+        "json": {
+          "links": [
+            "news/klaviaturi-tiomnie-temi-i-kultura-programmistov",
+            "news/kak-izmenilos-programmirovanie-za-poslednie-10-let",
+            "news/frontend-stal-slishkom-slozhnim-chto-proishodit-s-veb-razrabotkoy",
+            "news/chto-seychas-zamenyaet-iskusstvenniy-intellekt",
+            "tasks/5-logicheskih-zadach-kotorie-dayut-junior-razrabotchikam",
+            "news/pochemu-vse-perehodyat-na-linux-vmesto-windows",
+            "news/stoit-li-idti-v-it-radi-deneg-chestniy-razbor-bez-illyuziy",
+            "news/kakie-naviki-realno-nuzhni-chtobi-popast-v-it-v-2026-godu",
+            "tasks/est-3-sql-zaprosa-kakoy-iz-nih-unichtozhit-bd",
+            "news/ne-uchi-vtoroy-yazik-slishkom-rano"
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "HTML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d4898e6a-7c29-4ba5-9670-0b5797b8f65d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "29c1e8afc843f748cb9871e9759258ac894bed764f5255d7d7ec0ffb08046de4"
+  },
+  "nodeGroups": [],
+  "id": "1nn2Fj0Iu1ArmRAG",
+  "tags": []
+}

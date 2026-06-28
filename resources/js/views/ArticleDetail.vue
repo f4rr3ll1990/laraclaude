@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { marked } from 'marked';
 import api from '../api';
 import NewsCard from '../components/NewsCard.vue';
 
@@ -15,11 +16,16 @@ const notFound = ref(false);
 
 const appName = import.meta.env.VITE_APP_NAME || 'F4X';
 
-// Plain-text content is stored with blank-line paragraph breaks. Splitting on
-// 2+ newlines and rendering each chunk as an escaped <p> keeps it XSS-safe.
-const paragraphs = computed(() => {
-    const text = article.value?.content || '';
-    return text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+// Configure marked for safe rendering
+marked.setOptions({
+    breaks: true,
+    gfm: true,
+});
+
+// Parse markdown content to HTML
+const htmlContent = computed(() => {
+    const markdown = article.value?.content || '';
+    return marked.parse(markdown);
 });
 
 const formattedDate = computed(() => {
@@ -171,9 +177,7 @@ watch(
                         </button>
                     </div>
 
-                    <div class="prose article-body">
-                        <p v-for="(para, i) in paragraphs" :key="i">{{ para }}</p>
-                    </div>
+                    <div class="prose article-body" v-html="htmlContent"></div>
                 </div>
             </div>
 
