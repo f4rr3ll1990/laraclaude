@@ -1,3 +1,5 @@
+# Model: Claude code
+# Prompt:
 Translate all frontend text, labels, buttons, and static content in the F4X news website from their current language to Ukrainian (Українська мова). This should be a comprehensive translation of all user-facing text across all Vue components, templates, and pages while keeping the backend API responses unchanged (backend can remain in English or current language).
 
 ## Translation Requirements

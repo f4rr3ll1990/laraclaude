@@ -1,5 +1,5 @@
-#Model: Claude Code.
-#Prompt: 
+# Model: Claude Code.
+# Prompt: 
 Create a dark-themed minimalist news website using Laravel (backend) + Vue.js 3 (frontend) + Bootstrap 5 (dark mode). The website should have a clean, modern, and minimalist design with a dark color scheme throughout.
 
 ## Technical Stack

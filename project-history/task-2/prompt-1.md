@@ -1,5 +1,5 @@
-#Model: Claude code.
-#Prompt: 
+# Model: Claude code.
+# Prompt: 
 Rename the entire news website from its current name to "F4X". This should be a comprehensive rebranding across all files, components, and documentation. The name change must be consistent throughout the entire project.
 
 ## Brand Name Change Requirements

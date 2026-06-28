@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreNewsRequest;
 use App\Models\News;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class NewsController extends Controller
 {
@@ -28,6 +30,30 @@ class NewsController extends Controller
             ->paginate($perPage);
 
         return response()->json($news);
+    }
+
+    /**
+     * Create a new article. Protected by `auth:sanctum` (see routes/api.php).
+     *
+     * The slug is derived from the title; the excerpt falls back to a 150-char
+     * summary of the content (matching NewsCard.vue) and `published_at`
+     * defaults to now when omitted. Returns 201 with the created article.
+     */
+    public function store(StoreNewsRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        $data['slug'] = News::uniqueSlug($data['title']);
+
+        if (empty($data['excerpt'])) {
+            $data['excerpt'] = Str::limit(strip_tags($data['content']), 150);
+        }
+
+        $data['published_at'] = $data['published_at'] ?? now();
+
+        $article = News::create($data);
+
+        return response()->json(['data' => $article], 201);
     }
 
     /**

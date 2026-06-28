@@ -1,2 +1,35 @@
+User-agent: Googlebot
+Disallow: /
+
+User-agent: Yandex
+Disallow: /
+
+User-agent: Bingbot
+Disallow: /
+
+User-agent: MailRuBot
+Disallow: /
+
+User-agent: Baiduspider
+Disallow: /
+
+User-agent: DuckDuckBot
+Disallow: /
+
+User-agent: Applebot
+Disallow: /
+
+User-agent: Slurp
+Disallow: /
+
+User-agent: Sogou web spider
+Disallow: /
+
+User-agent: Exabot
+Disallow: /
+
+User-agent: facebookexternalhit
+Disallow: /
+
 User-agent: *
-Disallow:
+Disallow: /

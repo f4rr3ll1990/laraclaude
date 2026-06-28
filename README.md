@@ -89,6 +89,49 @@ VITE_API_BASE_URL=/api
 
 ---
 
+## Running publicly
+
+The site is reachable at **https://f4x.pp.ua** through Cloudflare. Request flow:
+
+```
+browser → Cloudflare → white IP :80 (router port-forward) → host :8000 (artisan serve)
+```
+
+Two helper scripts manage this:
+
+```bash
+./start.sh          # start the site (prompts for sudo only if MySQL is down)
+./stop.sh           # stop artisan serve
+./stop.sh --mysql   # stop artisan serve AND MySQL
+```
+
+`start.sh` does everything needed for a public run:
+
+1. **Checks MySQL** on `127.0.0.1:3306`; if down, starts LAMPP
+   (`sudo /opt/lampp/lampp startmysql`) and waits for the port.
+2. **Removes `public/hot`** (Vite dev mode) and runs `npm run build` if no
+   production build exists — so `@vite` serves hashed assets, not dev-server URLs.
+3. **Starts `php artisan serve --host=0.0.0.0 --port=8000`** detached
+   (`setsid`), writing the PID to `storage/serve.pid` and logs to
+   `storage/logs/serve.log`. Binding to `0.0.0.0` (not `127.0.0.1`) is what
+   makes the app reachable from the router/LAN.
+
+### Cloudflare / network requirements
+
+- **DNS** `f4x.pp.ua` → proxied (orange cloud) record pointing at the white IP.
+- **SSL/TLS mode must be `Flexible`** (dashboard → SSL/TLS → Overview). Only
+  port 80 is forwarded, so Cloudflare must reach the origin over HTTP — `Full`
+  / `Full (strict)` would try port 443 and return **error 521**.
+- **Router**: forward external port 80 → this host's port 8000.
+- `.env` for the public run uses `APP_ENV=production` and
+  `APP_URL=https://f4x.pp.ua`.
+
+> `php artisan serve` is a single-threaded dev server and does not survive a
+> reboot — re-run `./start.sh` after restarting the machine. For a hardened
+> setup, serve `public/` via Apache/nginx and add a systemd unit.
+
+---
+
 ## API Reference
 
 | Method | Endpoint           | Description                                            |

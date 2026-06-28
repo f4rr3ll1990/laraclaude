@@ -57,6 +57,26 @@ npm run build                     # production asset build
 php artisan route:list            # inspect routes
 ```
 
+## Public run (f4x.pp.ua)
+
+The site is served publicly via Cloudflare:
+`browser → Cloudflare → white IP :80 (router forward) → host :8000`.
+
+```bash
+./start.sh          # check/start MySQL (LAMPP), build assets, serve on 0.0.0.0:8000
+./stop.sh           # stop artisan serve
+./stop.sh --mysql   # also stop MySQL
+```
+
+- `start.sh` removes `public/hot` and ensures `public/build` exists so `@vite`
+  serves hashed assets (not dev-server URLs); PID in `storage/serve.pid`,
+  log in `storage/logs/serve.log`.
+- artisan **must** bind `0.0.0.0` (not `127.0.0.1`) to be reachable from the router.
+- Cloudflare **SSL/TLS mode must be `Flexible`** — only port 80 is forwarded, so
+  `Full`/`Full (strict)` tries origin :443 and returns **error 521**.
+- Public `.env`: `APP_ENV=production`, `APP_URL=https://f4x.pp.ua`. MySQL is
+  XAMPP/LAMPP at `/opt/lampp` (start needs sudo).
+
 ## Database
 
 MySQL, database `laraclaude_news` on `127.0.0.1:3306`, user `root`, empty

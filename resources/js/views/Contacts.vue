@@ -2,9 +2,9 @@
 import ContactForm from '../components/ContactForm.vue';
 
 const details = [
-    { label: 'Електронна пошта', value: 'hello@f4x.news', icon: '✉' },
-    { label: 'Телефон', value: '+1 (555) 018-2049', icon: '☎' },
-    { label: 'Адреса', value: '48 Aurora Lane, Suite 12\nPortland, OR 97204', icon: '⌖' },
+    { label: 'Електронна пошта', value: '00mazahaka00@gmail.com', icon: '✉' },
+    { label: 'Телефон', value: '+3 (8093) 000-0000', icon: '☎' },
+    { label: 'Адреса', value: 'Україна, м.Харків, вул.Амосова 25', icon: '⌖' },
 ];
 </script>
 
@@ -39,13 +39,6 @@ const details = [
                     </ul>
                 </div>
 
-                <div class="info-panel location-panel">
-                    <h2 class="info-panel__title mb-2">Як нас знайти</h2>
-                    <p class="text-secondary mb-1">Pearl District, Портленд, Орегон</p>
-                    <p class="text-secondary small mb-0">
-                        За кілька хвилин ходьби від набережної. Працюємо у будні, з 9:00 до 18:00 (PST).
-                    </p>
-                </div>
             </div>
         </div>
     </section>

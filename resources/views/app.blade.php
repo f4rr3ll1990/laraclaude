@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="F4X — темне мінімалістичне новинне видання про технології, науку та світ.">
     <meta property="og:title" content="F4X - Новини">
     <meta property="og:description" content="F4X — темне мінімалістичне новинне видання про технології, науку та світ.">

@@ -1,6 +1,6 @@
-#Model: Claude code.
-#Comand: /compact keep track of the current architecture
-#Prompt:
+# Model: Claude code.
+# Comand: /compact keep track of the current architecture
+# Prompt:
 Add a single news article detail page to the existing dark-themed minimalist news website. When users click on a news card on the homepage, they should be navigated to a dedicated page showing the full article.
 
 ## New Route
