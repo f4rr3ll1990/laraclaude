@@ -3,14 +3,20 @@
 namespace App\Jobs;
 
 use App\Models\News;
+use App\Services\GeminiPromptService;
 use App\Services\PuterImageService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Generates a cover image for a freshly created article via Puter and stores
- * the result on the public disk, then writes the URL back to `image_url`.
+ * Generates a cover image for a freshly created article and stores the result
+ * on the public disk, then writes the URL back to `image_url`.
+ *
+ * The image prompt is derived from the article body via Gemini
+ * (GeminiPromptService) so the cover reflects the whole story; the prompt is
+ * then rendered by Puter. If Gemini is unavailable the article title is used
+ * as the prompt instead.
  *
  * Dispatched from NewsController@store. On failure the article simply keeps a
  * null `image_url` (the frontend renders a gradient placeholder for those).
@@ -26,9 +32,13 @@ class GenerateArticleImage implements ShouldQueue
 
     public function __construct(public News $article) {}
 
-    public function handle(PuterImageService $puter): void
+    public function handle(GeminiPromptService $prompts, PuterImageService $puter): void
     {
-        $image = $puter->generate($this->article->title);
+        // Derive an image prompt from the article body; fall back to the title
+        // when Gemini can't produce one.
+        $prompt = $prompts->generate($this->article->content) ?: $this->article->title;
+
+        $image = $puter->generate($prompt);
 
         if (! $image) {
             return; // Graceful: leave image_url null.

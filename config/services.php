@@ -38,6 +38,8 @@ return [
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
         'image_model' => env('GEMINI_IMAGE_MODEL', 'gemini-2.5-flash-image'),
+        // Text model used to turn an article body into an image prompt.
+        'text_model' => env('GEMINI_TEXT_MODEL', 'gemini-3.1-flash-lite'),
     ],
 
     'puter' => [

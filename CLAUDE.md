@@ -22,10 +22,13 @@ client-side via Vue Router; all data comes from `/api/news`.
   `image_url` is `null` so the frontend renders a styled gradient placeholder.
 - **Article creation + AI image.** `POST /api/news` (Sanctum-protected,
   `NewsController@store`) saves the article immediately with `image_url = null`
-  and dispatches a queued `GenerateArticleImage` job. The job asks **Puter**
-  (`puter.ai.txt2img`, default `gpt-image-2`) for a cover (the article **title**
-  is the prompt), stores it on the `public` disk, and writes the URL back to
-  `image_url`. See [Image generation (Puter)](#image-generation-puter).
+  and dispatches a queued `GenerateArticleImage` job. The job first asks
+  **Gemini** (`GeminiPromptService`, text model `gemini-3.1-flash-lite`) to turn the
+  article **`content`** into a vivid image prompt, then asks **Puter**
+  (`puter.ai.txt2img`, default `gemini-3.1-flash-image-preview`) to render that prompt into a cover
+  (falling back to the **title** as the prompt if Gemini is unavailable), stores
+  it on the `public` disk, and writes the URL back to `image_url`. See
+  [Image generation (Puter)](#image-generation-puter).
 - **Frontend.** Vite + `@vitejs/plugin-vue`. Entry `resources/js/app.js`.
   Bootstrap is imported via SCSS (`resources/css/app.scss`) with dark-palette
   variable overrides *before* the Bootstrap import. Axios instance in
@@ -41,8 +44,9 @@ client-side via Vue Router; all data comes from `/api/news`.
 | `app/Http/Controllers/Api/NewsController.php` | API logic |
 | `app/Http/Requests/StoreNewsRequest.php` | `POST /news` validation rules |
 | `app/Jobs/GenerateArticleImage.php` | Queued cover-image generation per article |
+| `app/Services/GeminiPromptService.php` | Gemini: article body → image prompt |
 | `app/Services/PuterImageService.php` | Runs the Node bridge, returns image bytes |
-| `app/Services/GeminiImageService.php` | Legacy Gemini wrapper (no longer wired up) |
+| `app/Services/GeminiImageService.php` | Legacy Gemini image wrapper (no longer wired up) |
 | `ptr_img_gen/generate.js` | Node bridge: `puter.ai.txt2img` → base64 JSON on stdout |
 | `ptr_img_gen/auth.js` | One-time browser auth → prints `PUTER_AUTH_TOKEN` |
 | `app/Models/News.php` | Model, table `news`, slug route key |
@@ -101,9 +105,15 @@ via PDO (see README) if needed; the server itself is reachable.
 
 ## Image generation (Puter)
 
-`POST /api/news` generates an article cover via **Puter** (`puter.ai.txt2img`),
-using the article **`title`** as the prompt. Puter's free image API replaced
-Gemini (which hit `limit: 0` quota on the free tier).
+`POST /api/news` generates an article cover via **Puter** (`puter.ai.txt2img`).
+The prompt is **not** the raw title: `GeminiPromptService` first sends the
+article **`content`** to a Gemini text model (`GEMINI_TEXT_MODEL`, default
+`gemini-3.1-flash-lite`, via `generateContent`) and gets back a vivid one/two-sentence
+image prompt, which Puter then renders. If Gemini is unavailable (no key, error,
+empty result) the job falls back to using the article **`title`** as the prompt.
+Puter's free image API replaced Gemini for the *rendering* step (Gemini's image
+model hit `limit: 0` quota on the free tier); Gemini is still used for the
+text-to-prompt step.
 
 - **Why a Node bridge.** Puter's SDK (`@heyputer/puter.js`) only runs in a
   browser or Node — there is no PHP client. So `PuterImageService` shells out
@@ -117,7 +127,8 @@ Gemini (which hit `limit: 0` quota on the free tier).
   re-run `auth.js` if it expires/is revoked.
 - **Flow.** `NewsController@store` saves the article with `image_url = null` and
   dispatches `GenerateArticleImage` (queue `database`). The job calls
-  `PuterImageService::generate($title)`, stores the bytes at
+  `GeminiPromptService::generate($content)` to build the prompt (or falls back to
+  `$title`), passes it to `PuterImageService::generate($prompt)`, stores the bytes at
   `storage/app/public/articles/{id}.{ext}`, and sets `image_url` to the
   `Storage::disk('public')->url(...)` value (`{APP_URL}/storage/articles/...`).
 - **Requires a running worker.** Jobs sit in the `jobs` table until

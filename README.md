@@ -139,6 +139,7 @@ Two helper scripts manage this:
 | GET    | `/api/news`        | Paginated articles (10/page), newest first             |
 | GET    | `/api/news?page=2` | Specific page                                          |
 | GET    | `/api/news/{slug}` | Single article by slug (`404` JSON if not found)       |
+| POST   | `/api/news`        | Create an article (`auth:sanctum`); queues a cover image |
 
 `/api/news` returns Laravel's standard paginator payload:
 
@@ -153,6 +154,29 @@ Two helper scripts manage this:
   "total": 55
 }
 ```
+
+---
+
+## Cover image generation
+
+When an article is created via `POST /api/news`, its cover image is generated
+automatically by a queued `GenerateArticleImage` job in two steps:
+
+1. **Prompt from the article body (Gemini).** `GeminiPromptService` sends the
+   article **`content`** to a Gemini text model (`GEMINI_TEXT_MODEL`, default
+   `gemini-3.1-flash-lite`) and gets back a vivid, one/two-sentence image prompt.
+   This replaces the old behaviour of using the raw **title** as the prompt, so
+   the picture reflects the whole story. If Gemini is unavailable (no key, error,
+   empty result) the job falls back to the title.
+2. **Render (Puter).** The prompt is rendered into an image via Puter
+   (`puter.ai.txt2img`); the result is stored on the `public` disk and its URL is
+   written back to `image_url`. Until the worker runs, `image_url` is `null` and
+   the frontend shows a gradient placeholder.
+
+Requirements: a running queue worker (`php artisan queue:work`), the
+`php artisan storage:link` symlink, `GEMINI_API_KEY` and `PUTER_AUTH_TOKEN` set
+in `.env`, and Node + the `ptr_img_gen/` deps for the Puter bridge. Any failure
+is logged and leaves `image_url = null` — article creation never fails on it.
 
 ---
 
