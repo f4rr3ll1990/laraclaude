@@ -17,9 +17,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // A known admin account for obtaining API tokens (POST /api/login).
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'admin@f4x.test'],
-            ['name' => 'F4X Admin', 'password' => Hash::make('password')],
+            ['name' => 'F4X Admin', 'password' => Hash::make('password'), 'is_admin' => true],
         );
 
         $this->call(NewsSeeder::class);

@@ -20,6 +20,13 @@ Route::post('/login', [AuthController::class, 'login']);
 // Token-protected endpoints (Sanctum Bearer token required).
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/news', [NewsController::class, 'store']);
     Route::get('/user', fn (Request $request) => $request->user());
+
+    // Admin-only news management. Resolved by slug (News route key).
+    Route::middleware('admin')->group(function () {
+        Route::post('/news', [NewsController::class, 'store']);
+        Route::put('/news/{news}', [NewsController::class, 'update']);
+        Route::delete('/news/{news}', [NewsController::class, 'destroy']);
+        Route::post('/news/{news}/regenerate-image', [NewsController::class, 'regenerateImage']);
+    });
 });
