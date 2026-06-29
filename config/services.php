@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'image_model' => env('GEMINI_IMAGE_MODEL', 'gemini-2.5-flash-image'),
+    ],
+
+    'puter' => [
+        // Auth token from `node ptr_img_gen/auth.js` (one-time browser confirm).
+        'token' => env('PUTER_AUTH_TOKEN'),
+        'model' => env('PUTER_IMAGE_MODEL', 'gpt-image-2'),
+        'quality' => env('PUTER_IMAGE_QUALITY', 'low'),
+        // Node binary and the generator script that bridges to puter.js.
+        'node' => env('NODE_BINARY', 'node'),
+        'script_dir' => env('PUTER_SCRIPT_DIR', base_path('ptr_img_gen')),
+    ],
+
 ];

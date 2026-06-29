@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreNewsRequest;
+use App\Jobs\GenerateArticleImage;
 use App\Models\News;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,7 +38,9 @@ class NewsController extends Controller
      *
      * The slug is derived from the title; the excerpt falls back to a 150-char
      * summary of the content (matching NewsCard.vue) and `published_at`
-     * defaults to now when omitted. Returns 201 with the created article.
+     * defaults to now when omitted. The cover image is generated from the title
+     * by a queued GenerateArticleImage job, so the article starts with a null
+     * `image_url` that is filled in once the worker runs. Returns 201.
      */
     public function store(StoreNewsRequest $request): JsonResponse
     {
@@ -51,7 +54,13 @@ class NewsController extends Controller
 
         $data['published_at'] = $data['published_at'] ?? now();
 
+        // The cover image is machine-generated; ignore any client-supplied URL
+        // so the row starts null and is owned by GenerateArticleImage.
+        unset($data['image_url']);
+
         $article = News::create($data);
+
+        GenerateArticleImage::dispatch($article);
 
         return response()->json(['data' => $article], 201);
     }

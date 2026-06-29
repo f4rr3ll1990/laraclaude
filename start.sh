@@ -20,6 +20,8 @@ DB_PORT="3306"
 LAMPP="/opt/lampp/lampp"
 LOG="$APP_DIR/storage/logs/serve.log"
 PIDFILE="$APP_DIR/storage/serve.pid"
+QUEUE_LOG="$APP_DIR/storage/logs/queue.log"
+QUEUE_PIDFILE="$APP_DIR/storage/queue.pid"
 
 # ── вывод ────────────────────────────────────────────────────────────────
 c_ok()   { printf '\033[32m✔\033[0m %s\n' "$*"; }
@@ -72,6 +74,16 @@ else
     c_ok "Прод-сборка на месте (public/build)."
 fi
 
+# Симлинк public/storage нужен, чтобы сгенерированные Gemini обложки
+# (storage/app/public/articles/*) были доступны по URL /storage/...
+if [[ ! -e public/storage ]]; then
+    c_warn "Нет симлинка public/storage — создаю (php artisan storage:link)…"
+    php artisan storage:link
+    c_ok "Симлинк создан."
+else
+    c_ok "Симлинк public/storage на месте."
+fi
+
 # ── 3. artisan serve ─────────────────────────────────────────────────────
 # Уже запущен?
 if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
@@ -106,3 +118,19 @@ else
     tail -20 "$LOG" >&2
     exit 1
 fi
+
+# ── 4. Очередь (генерация обложек через Gemini) ──────────────────────────
+# POST /api/news ставит задачу GenerateArticleImage в очередь database —
+# без воркера обложки никогда не сгенерируются.
+if [[ -f "$QUEUE_PIDFILE" ]] && kill -0 "$(cat "$QUEUE_PIDFILE")" 2>/dev/null; then
+    c_warn "Воркер очереди уже запущен (PID $(cat "$QUEUE_PIDFILE")). Перезапускаю."
+    kill "$(cat "$QUEUE_PIDFILE")" 2>/dev/null || true
+    sleep 1
+fi
+
+c_info "Запускаю queue:work…"
+setsid nohup php artisan queue:work --tries=3 --sleep=3 \
+    > "$QUEUE_LOG" 2>&1 < /dev/null &
+echo $! > "$QUEUE_PIDFILE"
+disown || true
+c_ok "Воркер очереди поднят (PID $(cat "$QUEUE_PIDFILE")). Лог: $QUEUE_LOG"

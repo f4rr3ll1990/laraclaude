@@ -9,6 +9,7 @@ set -uo pipefail
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIDFILE="$APP_DIR/storage/serve.pid"
+QUEUE_PIDFILE="$APP_DIR/storage/queue.pid"
 LAMPP="/opt/lampp/lampp"
 
 c_ok()   { printf '\033[32m✔\033[0m %s\n' "$*"; }
@@ -34,6 +35,24 @@ else
         c_warn "artisan serve не запущен."
     fi
     rm -f "$PIDFILE"
+fi
+
+# ── queue:work ───────────────────────────────────────────────────────────
+if [[ -f "$QUEUE_PIDFILE" ]] && kill -0 "$(cat "$QUEUE_PIDFILE")" 2>/dev/null; then
+    QPID="$(cat "$QUEUE_PIDFILE")"
+    c_info "Останавливаю queue:work (PID $QPID)…"
+    kill "$QPID" 2>/dev/null || true
+    sleep 1
+    kill -9 "$QPID" 2>/dev/null || true
+    rm -f "$QUEUE_PIDFILE"
+    c_ok "Воркер очереди остановлен."
+else
+    if pgrep -f "artisan queue:work" >/dev/null; then
+        c_warn "PID-файла нет, глушу queue:work по имени процесса."
+        pkill -f "artisan queue:work" 2>/dev/null || true
+        c_ok "Воркер очереди остановлен."
+    fi
+    rm -f "$QUEUE_PIDFILE"
 fi
 
 # ── MySQL (по флагу) ─────────────────────────────────────────────────────

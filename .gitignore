@@ -14,6 +14,7 @@
 /.zed
 /auth.json
 /node_modules
+/ptr_img_gen/node_modules
 /public/build
 /public/fonts-manifest.dev.json
 /public/hot
