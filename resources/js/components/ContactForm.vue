@@ -1,5 +1,6 @@
 <script setup>
 import { reactive, ref } from 'vue';
+import api from '../api';
 
 const form = reactive({
     name: '',
@@ -11,6 +12,7 @@ const form = reactive({
 const errors = reactive({});
 const submitting = ref(false);
 const submitted = ref(false);
+const submitError = ref('');
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -39,20 +41,40 @@ const validate = () => {
 
 const handleSubmit = async () => {
     submitted.value = false;
+    submitError.value = '';
     if (!validate()) return;
 
     submitting.value = true;
 
-    // Simulate a network request — no backend endpoint required.
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+        await api.post('/contact', {
+            name: form.name.trim(),
+            email: form.email.trim(),
+            subject: form.subject.trim(),
+            message: form.message.trim(),
+        });
 
-    submitting.value = false;
-    submitted.value = true;
+        submitted.value = true;
 
-    form.name = '';
-    form.email = '';
-    form.subject = '';
-    form.message = '';
+        form.name = '';
+        form.email = '';
+        form.subject = '';
+        form.message = '';
+    } catch (error) {
+        // Surface server-side validation errors on their fields when present,
+        // otherwise show a generic failure message.
+        const responseErrors = error.response?.data?.errors;
+        if (responseErrors) {
+            Object.entries(responseErrors).forEach(([key, messages]) => {
+                errors[key] = Array.isArray(messages) ? messages[0] : messages;
+            });
+        } else {
+            submitError.value =
+                'Не вдалося надіслати повідомлення. Спробуйте ще раз пізніше.';
+        }
+    } finally {
+        submitting.value = false;
+    }
 };
 </script>
 
@@ -65,6 +87,15 @@ const handleSubmit = async () => {
         >
             <span class="me-2">✓</span>
             Дякуємо, що звернулися — ваше повідомлення надіслано. Ми скоро з вами зв'яжемося.
+        </div>
+
+        <div
+            v-if="submitError"
+            class="alert alert-danger d-flex align-items-center"
+            role="alert"
+        >
+            <span class="me-2">⚠</span>
+            {{ submitError }}
         </div>
 
         <div class="mb-3">

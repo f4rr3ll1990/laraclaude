@@ -6,10 +6,10 @@
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
       "position": [
-        0,
-        0
+        -1584,
+        368
       ],
-      "id": "b1bde570-879e-4189-a5a1-281d339c0dfe",
+      "id": "502bdbf5-a0c2-4284-9a07-275cec42ae16",
       "name": "When clicking ‘Execute workflow’"
     },
     {
@@ -20,10 +20,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        144,
-        0
+        -1440,
+        368
       ],
-      "id": "9fb1ab27-1123-4dd4-ab86-a1d085807811",
+      "id": "5eab95e9-ed86-4e20-b801-b7f1ab2c89f7",
       "name": "HTTP Request"
     },
     {
@@ -45,10 +45,10 @@
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        288,
-        0
+        -1296,
+        368
       ],
-      "id": "6ec957de-0790-4b23-a532-b69bb858056c",
+      "id": "4d48a9ef-fc47-4586-a8e3-a0703d881ccc",
       "name": "HTML"
     },
     {
@@ -59,10 +59,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        448,
-        0
+        -1136,
+        368
       ],
-      "id": "d71a41cb-5db0-4a95-8064-98c4732f860c",
+      "id": "f1b186be-834d-4ccb-9d9e-7fcc1c6d48c7",
       "name": "Split Out"
     },
     {
@@ -73,10 +73,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        624,
-        0
+        -960,
+        368
       ],
-      "id": "8104b2b6-099d-4e0e-a454-690097620930",
+      "id": "57a8c8d2-e26c-4887-89ca-75cf9f4f6387",
       "name": "HTTP Request3"
     },
     {
@@ -104,16 +104,17 @@
       "type": "n8n-nodes-base.html",
       "typeVersion": 1.2,
       "position": [
-        800,
-        0
+        -784,
+        368
       ],
-      "id": "b84e7431-ab67-4808-8fc6-a9d605792117",
+      "id": "46a0b96b-1aae-47e8-91c0-a09782a283c6",
       "name": "HTML1"
     },
     {
       "parameters": {
         "promptType": "define",
         "text": "={{ $json.fulltext }}",
+        "hasOutputParser": true,
         "options": {
           "systemMessage": "Rewrite the text you received",
           "batching": {
@@ -124,10 +125,10 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
       "position": [
-        1504,
-        16
+        -80,
+        384
       ],
-      "id": "54d6363d-2e39-4ae4-849b-6f08fed3c192",
+      "id": "75cb343d-97e2-423d-9847-a0e5e03a0eb8",
       "name": "AI Agent",
       "executeOnce": false
     },
@@ -139,14 +140,14 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
       "typeVersion": 1,
       "position": [
-        1504,
-        256
+        -80,
+        624
       ],
-      "id": "1b8f465b-f8ad-4206-92e6-51c968cba921",
+      "id": "a1f8599f-e41c-42fc-90b3-f4e80d2d9cd8",
       "name": "Groq Chat Model",
       "credentials": {
         "groqApi": {
-          "id": "tLw5XdYYepCvmzYe",
+          "id": "MEWBGBLllxe1p0j1",
           "name": "Groq account"
         }
       }
@@ -159,10 +160,10 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1040,
-        0
+        -544,
+        368
       ],
-      "id": "69d8d44e-3269-4b55-bbc6-52fbb35577ac",
+      "id": "f85da2d9-eb98-48fb-b211-6dc46df121a3",
       "name": "Loop Over Items"
     },
     {
@@ -174,6 +175,12 @@
               "name": "fulltext",
               "value": "={{ $json.text }}\n{{ $json.bigtext }}",
               "type": "string"
+            },
+            {
+              "id": "38b1f5a0-caaf-4db6-8892-52c2567a2401",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
             }
           ]
         },
@@ -182,10 +189,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1296,
-        16
+        -288,
+        384
       ],
-      "id": "47a9161e-d1e9-4f6a-aa0a-7af8098a16e9",
+      "id": "5e844f5a-236f-40a0-9d9f-44b8218d3be7",
       "name": "Edit Fields"
     },
     {
@@ -267,7 +274,7 @@
             {
               "id": "e2b91558-dcfe-4b45-80cc-55dd3ef44840",
               "name": "body",
-              "value": "=[{ \"type\": \"p\", \"text\": \"{{ $json.output }}\" }]",
+              "value": "={{ $json.output }}",
               "type": "string"
             },
             {
@@ -283,38 +290,24 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1248,
-        -192
+        -336,
+        176
       ],
-      "id": "13501a07-b678-42b5-a3d6-226f6313f7d0",
+      "id": "37caa875-7ac7-45b8-abd4-35d37d1f1c5f",
       "name": "Edit Fields1"
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://192.168.2.2:3000/api/articles",
+        "url": "http://192.168.2.2:8000/api/news",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
         "sendBody": true,
         "bodyParameters": {
           "parameters": [
             {
-              "name": "=category",
-              "value": "={{ $json.category }}"
-            },
-            {
               "name": "title",
               "value": "={{ $json.title }}"
-            },
-            {
-              "name": "excerpt",
-              "value": "={{ $json.excerpt }}"
-            },
-            {
-              "name": "lead",
-              "value": "={{ $json.lead }}"
-            },
-            {
-              "name": "image",
-              "value": "={{ $json.image }}"
             },
             {
               "name": "date",
@@ -325,32 +318,8 @@
               "value": "={{ $json.author }}"
             },
             {
-              "name": "authorAvatar",
-              "value": "={{ $json.authorAvatar }}"
-            },
-            {
-              "name": "readingTime",
-              "value": "={{ $json.readingTime }}"
-            },
-            {
-              "name": "figcaption",
-              "value": "={{ $json.figcaption }}"
-            },
-            {
-              "name": "featured",
-              "value": "={{ $json.featured }}"
-            },
-            {
-              "name": "views",
-              "value": "={{ $json.views }}"
-            },
-            {
-              "name": "body",
+              "name": "content",
               "value": "={{ $json.body }}"
-            },
-            {
-              "name": "tags",
-              "value": "={{ $json.tags }}"
             }
           ]
         },
@@ -359,11 +328,17 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1904,
-        -224
+        320,
+        144
       ],
-      "id": "d048ab4d-c91f-4470-be79-d496cfcd232b",
-      "name": "HTTP Request1"
+      "id": "942db5fb-a2f3-4ae4-bfe3-fe29bf5f47a1",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "IN2w1aYs8gDQP4Nc",
+          "name": "Bearer Auth account"
+        }
+      }
     },
     {
       "parameters": {
@@ -373,36 +348,99 @@
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
       "position": [
-        1584,
-        -368
+        0,
+        0
       ],
-      "id": "b9af1296-2440-40e9-830d-e1074b0cf7d4",
+      "id": "4165369c-93fc-4a0e-9193-0d6caa5f5b4f",
       "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n\t\"title\": {{ JSON.stringify($json.title )}},\n    \"bigtext\": {{  JSON.stringify($json.fulltext.replace(/[\\n\\r\\t]/g, ' ').replace(/\\s+/g, ' ').trim()) }}\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        176,
+        576
+      ],
+      "id": "bd44cf6e-9a0e-44d6-8894-da1176119488",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "CMsVpA30vwa4pOVX",
+          "mode": "list",
+          "cachedResultName": "news_posts",
+          "cachedResultUrl": "/projects/DzY9KGpwaZDWX6x9/datatables/CMsVpA30vwa4pOVX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "hash": "={{ $('Split Out').item.json.links }}"
+          },
+          "matchingColumns": [
+            "hash"
+          ],
+          "schema": [
+            {
+              "id": "hash",
+              "displayName": "hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        144
+      ],
+      "id": "71ce178f-619b-4b35-9806-d801c73dbc6f",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "operation": "rowNotExists",
+        "dataTableId": {
+          "__rl": true,
+          "value": "CMsVpA30vwa4pOVX",
+          "mode": "list",
+          "cachedResultName": "news_posts",
+          "cachedResultUrl": "/projects/DzY9KGpwaZDWX6x9/datatables/CMsVpA30vwa4pOVX"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "hash",
+              "keyValue": "={{ $json.links }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -1024,
+        112
+      ],
+      "id": "e8a6002e-4bb6-4326-8222-d715d85c47e9",
+      "name": "If row does not exist"
     }
   ],
-  "pinData": {
-    "HTML": [
-      {
-        "json": {
-          "links": [
-            "news/klaviaturi-tiomnie-temi-i-kultura-programmistov",
-            "news/kak-izmenilos-programmirovanie-za-poslednie-10-let",
-            "news/frontend-stal-slishkom-slozhnim-chto-proishodit-s-veb-razrabotkoy",
-            "news/chto-seychas-zamenyaet-iskusstvenniy-intellekt",
-            "tasks/5-logicheskih-zadach-kotorie-dayut-junior-razrabotchikam",
-            "news/pochemu-vse-perehodyat-na-linux-vmesto-windows",
-            "news/stoit-li-idti-v-it-radi-deneg-chestniy-razbor-bez-illyuziy",
-            "news/kakie-naviki-realno-nuzhni-chtobi-popast-v-it-v-2026-godu",
-            "tasks/est-3-sql-zaprosa-kakoy-iz-nih-unichtozhit-bd",
-            "news/ne-uchi-vtoroy-yazik-slishkom-rano"
-          ]
-        },
-        "pairedItem": {
-          "item": 0
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "When clicking ‘Execute workflow’": {
       "main": [
@@ -441,7 +479,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request3",
+            "node": "If row does not exist",
             "type": "main",
             "index": 0
           }
@@ -548,7 +586,40 @@
       "main": [
         [
           {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
             "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If row does not exist": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
             "type": "main",
             "index": 0
           }
@@ -562,12 +633,12 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "d4898e6a-7c29-4ba5-9670-0b5797b8f65d",
+  "versionId": "0d9402d7-a449-4060-bb8f-0133cb7bbd63",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "29c1e8afc843f748cb9871e9759258ac894bed764f5255d7d7ec0ffb08046de4"
+    "instanceId": "3666af600d5961e688a0199babcaebc18384df1a1e107e38948b25495bea9f39"
   },
   "nodeGroups": [],
-  "id": "1nn2Fj0Iu1ArmRAG",
+  "id": "nX5cAsvXAJrx3Vda",
   "tags": []
 }

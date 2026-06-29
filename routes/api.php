@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\NewsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -8,6 +9,9 @@ use Illuminate\Support\Facades\Route;
 // Public, read-only article endpoints.
 Route::get('/news', [NewsController::class, 'index']);
 Route::get('/news/{slug}', [NewsController::class, 'show']);
+
+// Public contact-form submission.
+Route::post('/contact', [ContactMessageController::class, 'store']);
 
 // Authentication.
 Route::post('/register', [AuthController::class, 'register']);

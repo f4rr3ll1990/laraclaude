@@ -29,6 +29,12 @@ client-side via Vue Router; all data comes from `/api/news`.
   (falling back to the **title** as the prompt if Gemini is unavailable), stores
   it on the `public` disk, and writes the URL back to `image_url`. See
   [Image generation (Puter)](#image-generation-puter).
+- **Contact form.** `POST /api/contact` (public, `ContactMessageController@store`)
+  persists a submission to the `contact_messages` table (`name`, `email`,
+  `subject`, `message`). Validation lives in `StoreContactMessageRequest` and
+  mirrors the client-side rules in `ContactForm.vue` (message ≥ 10 chars).
+  `ContactForm.vue` posts via the shared axios instance, maps Laravel 422
+  `errors` back onto fields, and shows a generic alert on other failures.
 - **Frontend.** Vite + `@vitejs/plugin-vue`. Entry `resources/js/app.js`.
   Bootstrap is imported via SCSS (`resources/css/app.scss`) with dark-palette
   variable overrides *before* the Bootstrap import. Axios instance in
@@ -40,9 +46,13 @@ client-side via Vue Router; all data comes from `/api/news`.
 |------|---------|
 | `bootstrap/app.php` | Registers `routes/api.php` |
 | `routes/web.php` | SPA catch-all (`/{any?}` excluding `api`) |
-| `routes/api.php` | `GET /news`, `GET /news/{slug}`, `POST /news` (Sanctum), auth routes |
+| `routes/api.php` | `GET /news`, `GET /news/{slug}`, `POST /news` (Sanctum), `POST /contact`, auth routes |
 | `app/Http/Controllers/Api/NewsController.php` | API logic |
 | `app/Http/Requests/StoreNewsRequest.php` | `POST /news` validation rules |
+| `app/Http/Controllers/Api/ContactMessageController.php` | `POST /contact`: stores a contact-form submission |
+| `app/Http/Requests/StoreContactMessageRequest.php` | `POST /contact` validation rules |
+| `app/Models/ContactMessage.php` | Model, table `contact_messages` |
+| `resources/js/components/ContactForm.vue` | Contact form, posts to `POST /api/contact` |
 | `app/Jobs/GenerateArticleImage.php` | Queued cover-image generation per article |
 | `app/Services/GeminiPromptService.php` | Gemini: article body → image prompt |
 | `app/Services/PuterImageService.php` | Runs the Node bridge, returns image bytes |
