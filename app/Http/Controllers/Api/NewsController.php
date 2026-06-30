@@ -7,6 +7,7 @@ use App\Http\Requests\StoreNewsRequest;
 use App\Http\Requests\UpdateNewsRequest;
 use App\Jobs\GenerateArticleImage;
 use App\Models\News;
+use App\Services\GeminiPromptService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -122,16 +123,44 @@ class NewsController extends Controller
     }
 
     /**
+     * Build (but do not render) an image prompt for an article via Gemini.
+     * Admin only. Lets the admin preview/edit the prompt before generating.
+     *
+     * Returns the Gemini-produced prompt, or — when Gemini is unavailable —
+     * the article title as a fallback, with a `source` flag so the UI can say
+     * where it came from. Runs synchronously (no queue).
+     */
+    public function generatePrompt(News $news, GeminiPromptService $prompts): JsonResponse
+    {
+        $prompt = $prompts->generate($news->content);
+
+        return response()->json(['data' => [
+            'prompt' => $prompt ?: $news->title,
+            'source' => $prompt ? 'gemini' : 'title',
+        ]]);
+    }
+
+    /**
      * Re-dispatch cover-image generation for an article. Admin only.
      *
      * Resets `image_url` to null immediately (the frontend placeholder covers
-     * the gap) and queues GenerateArticleImage to render a fresh cover.
+     * the gap) and queues GenerateArticleImage to render a fresh cover. An
+     * optional `prompt` in the body is rendered verbatim (skipping Gemini),
+     * letting an admin supply a hand-edited prompt.
      */
-    public function regenerateImage(News $news): JsonResponse
+    public function regenerateImage(Request $request, News $news): JsonResponse
     {
+        $validated = $request->validate([
+            'prompt' => ['nullable', 'string', 'max:2000'],
+        ]);
+
         $news->update(['image_url' => null]);
 
-        GenerateArticleImage::dispatch($news);
+        $prompt = isset($validated['prompt']) && trim($validated['prompt']) !== ''
+            ? $validated['prompt']
+            : null;
+
+        GenerateArticleImage::dispatch($news, $prompt);
 
         return response()->json(['data' => $news]);
     }

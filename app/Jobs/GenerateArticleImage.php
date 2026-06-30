@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\Storage;
  * The image prompt is derived from the article body via Gemini
  * (GeminiPromptService) so the cover reflects the whole story; the prompt is
  * then rendered by Puter. If Gemini is unavailable the article title is used
- * as the prompt instead.
+ * as the prompt instead. A caller may also pass an explicit `$promptOverride`
+ * (e.g. an admin-edited prompt) to skip Gemini and render it verbatim.
  *
  * Dispatched from NewsController@store. On failure the article simply keeps a
  * null `image_url` (the frontend renders a gradient placeholder for those).
@@ -30,13 +31,21 @@ class GenerateArticleImage implements ShouldQueue
 
     public int $backoff = 10;
 
-    public function __construct(public News $article) {}
+    /**
+     * @param  string|null  $promptOverride  When non-empty, rendered as-is
+     *                                        instead of asking Gemini.
+     */
+    public function __construct(public News $article, public ?string $promptOverride = null) {}
 
     public function handle(GeminiPromptService $prompts, PuterImageService $puter): void
     {
-        // Derive an image prompt from the article body; fall back to the title
-        // when Gemini can't produce one.
-        $prompt = $prompts->generate($this->article->content) ?: $this->article->title;
+        // Use the caller-supplied prompt when given; otherwise derive one from
+        // the article body via Gemini, falling back to the title.
+        $override = $this->promptOverride !== null ? trim($this->promptOverride) : '';
+
+        $prompt = $override !== ''
+            ? $override
+            : ($prompts->generate($this->article->content) ?: $this->article->title);
 
         $image = $puter->generate($prompt);
 
@@ -55,8 +64,14 @@ class GenerateArticleImage implements ShouldQueue
 
         Storage::disk('public')->put($path, $image['data']);
 
+        // The file path is stable per article, so append a cache-busting query
+        // param — otherwise browsers (and the CDN) keep serving the previous
+        // cover after a regeneration. parse_url(PHP_URL_PATH) in destroy()
+        // ignores the query, so cleanup still works.
+        $url = Storage::disk('public')->url($path).'?v='.now()->timestamp;
+
         $this->article->update([
-            'image_url' => Storage::disk('public')->url($path),
+            'image_url' => $url,
         ]);
     }
 }

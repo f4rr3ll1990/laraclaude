@@ -28,7 +28,11 @@ client-side via Vue Router; all data comes from `/api/news`.
   (`puter.ai.txt2img`, default `gemini-3.1-flash-image-preview`) to render that prompt into a cover
   (falling back to the **title** as the prompt if Gemini is unavailable), stores
   it on the `public` disk, and writes the URL back to `image_url`. See
-  [Image generation (Puter)](#image-generation-puter).
+  [Image generation (Puter)](#image-generation-puter). From the admin edit form
+  an admin can preview the Gemini prompt (`POST /news/{news}/generate-prompt`,
+  synchronous, returns prompt + `source`) and pass a hand-edited prompt to
+  `POST /news/{news}/regenerate-image` (optional `prompt` body field); when
+  present the job renders it verbatim and skips Gemini.
 - **Contact form.** `POST /api/contact` (public, `ContactMessageController@store`)
   persists a submission to the `contact_messages` table (`name`, `email`,
   `subject`, `message`). Validation lives in `StoreContactMessageRequest` and
@@ -46,7 +50,7 @@ client-side via Vue Router; all data comes from `/api/news`.
 |------|---------|
 | `bootstrap/app.php` | Registers `routes/api.php` |
 | `routes/web.php` | SPA catch-all (`/{any?}` excluding `api`) |
-| `routes/api.php` | `GET /news`, `GET /news/{slug}`, `POST /news` (Sanctum), `POST /contact`, auth routes |
+| `routes/api.php` | `GET /news`, `GET /news/{slug}`, `POST /news` (Sanctum), admin `PUT/DELETE /news/{news}`, `POST /news/{news}/generate-prompt`, `POST /news/{news}/regenerate-image`, `POST /contact`, auth routes |
 | `app/Http/Controllers/Api/NewsController.php` | API logic |
 | `app/Http/Requests/StoreNewsRequest.php` | `POST /news` validation rules |
 | `app/Http/Controllers/Api/ContactMessageController.php` | `POST /contact`: stores a contact-form submission |

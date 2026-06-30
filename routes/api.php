@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/news', [NewsController::class, 'store']);
         Route::put('/news/{news}', [NewsController::class, 'update']);
         Route::delete('/news/{news}', [NewsController::class, 'destroy']);
+        Route::post('/news/{news}/generate-prompt', [NewsController::class, 'generatePrompt']);
         Route::post('/news/{news}/regenerate-image', [NewsController::class, 'regenerateImage']);
     });
 });
